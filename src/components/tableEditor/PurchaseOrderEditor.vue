@@ -7,13 +7,121 @@
     :close-on-click-modal="false"
     class="purchase-order-editor"
   >
+    <el-container direction="vertical">
+      <el-card class="box-card box-title" shadow="never">
+        <div class="clearfix">
+          <span>
+            {{ this.record._source.supplier | capitalizeFirstLetter }}
+          </span>
+        </div>
+      </el-card>
 
-   
-    purchase order
+      <el-card class="box-card picker-bg" shadow="never">
+        <div class="clearfix">
+          <div>
+            Actuellement assigné(s) :
 
+            <!-- DEFAULT PICKER ROW -->
+            <el-row class="text item">
+              <el-card
+                class="picker-card"
+                shadow="hover"
+                body-style="padding: 0px 1em 0px 1em;"
+              >
+                <span style="float: left; min-width: 200px;">
+                  Ramasseur par défaut
+                </span>
+                <span>
+                  <el-select
+                    v-model="defaultPicker"
+                    placeholder="Choisir le ramasseur"
+                    style="min-width: 300px;"
+                  >
+                    <el-option
+                      v-for="user in usersList"
+                      :key="user._source.login"
+                      :label="
+                        user._source.firstname + ' ' + user._source.lastname
+                      "
+                      :value="user._source.login"
+                    >
+                    </el-option>
+                  </el-select>
+                </span>
 
+                <el-button-group style="float:right;">
+                  <el-tooltip
+                    class="item"
+                    effect="dark"
+                    content="Désaffecter cet utilisateur"
+                    placement="top-start"
+                  >
+                    <el-button
+                      type="danger"
+                      icon="el-icon-delete"
+                      size="small"
+                      @click="defaultPicker = ''"
+                    ></el-button>
+                  </el-tooltip>
+                </el-button-group>
+              </el-card>
+            </el-row>
+
+            <!-- CURRENT PICKER ROW -->
+            <el-row class="text item">
+              <el-card
+                class="picker-card"
+                shadow="hover"
+                body-style="padding: 0px 1em 0px 1em;"
+              >
+                <span style="float: left; min-width: 200px;">
+                  Assigné à ce bon
+                </span>
+
+                <span align="middle">
+                  <el-select
+                    v-model="currentPicker"
+                    placeholder="Choisir le ramasseur"
+                    style="min-width: 300px;"
+                  >
+                    <el-option
+                      v-for="user in usersList"
+                      :key="user._source.login"
+                      :label="
+                        user._source.firstname + ' ' + user._source.lastname
+                      "
+                      :value="user._source.login"
+                    >
+                    </el-option>
+                  </el-select>
+                </span>
+
+                <el-button-group style="float:right;">
+                  <el-tooltip
+                    class="item"
+                    effect="dark"
+                    content="Désaffecter cet utilisateur"
+                    placement="top-start"
+                  >
+                    <el-button
+                      type="danger"
+                      icon="el-icon-delete"
+                      size="small"
+                      @click="currentPicker = ''"
+                    ></el-button>
+                  </el-tooltip>
+                </el-button-group>
+              </el-card>
+            </el-row>
+          </div>
+        </div>
+      </el-card>
+    </el-container>
+
+    <div class="row"></div>
     <span slot="footer" class="dialog-footer">
-      <el-button @click="$emit('dialogclose')">{{this.$t("buttons.quit")}}</el-button>
+      <el-button @click="closeDialog">Annuler</el-button>
+      <el-button @click="closeAndSaveDialog">Valider</el-button>
     </span>
   </el-dialog>
 </template>
@@ -32,8 +140,11 @@ export default {
     formLabelWidth: "120px",
     changed: false,
     dialogFormVisible: false,
-    title: "My super title",
-    
+    title: "Assigner un ramasseur",
+    currentPicker: "",
+    defaultPicker: "",
+    supplierPicker: "",
+    usersList: [],
   }),
   computed: {
     recordin: function() {
@@ -44,41 +155,245 @@ export default {
     },
     recchanged: function() {
       return JSON.stringify(this.recordin) != JSON.stringify(this.newRec);
-    }
+    },
   },
   props: {
     record: {
-      type: Object
+      type: Object,
     },
     config: {
-      type: Object
+      type: Object,
     },
     editMode: {
-      type: String
-    }
+      type: String,
+    },
   },
   watch: {
     recordin: {
-      handler: function() {
-        
-      },
-      deep: true
-    }
+      handler: function() {},
+      deep: true,
+    },
   },
   created: function() {
     this.dialogFormVisible = true;
-
-    console.log(this.record)
   },
-  components: {},
+  mounted: function() {
+    this.init();
+  },
   methods: {
     closeDialog: function() {
+      this.cleanAllData();
       this.$emit("dialogclose");
     },
-  }
+    closeAndSaveDialog: function() {
+      /*========== SAVING THE CURRENT PURCHASE ORDER ==========*/
+      if (this.record._source.picker != this.currentPicker) {
+        this.record._source.picker = this.currentPicker;
+
+        var updatedRecord = {
+          _index: this.record._index,
+          _source: this.record._source,
+          _id: this.record._id,
+        };
+
+        this.$store.commit({
+          type: "updateRecord",
+          data: updatedRecord,
+        });
+
+        this.notifyUser(
+          "success",
+          "Bon de commande",
+          "Enregistrement réussi !"
+        );
+      }
+
+      /*========== SAVING THE DEFAULT PICKER ==========*/
+      if (this.supplierPicker != this.defaultPicker) {
+        /*  GET SUPPLIER DATA */
+        var urlSupplier =
+          this.$store.getters.apiurl +
+          "generic/supplier_veeqo/" +
+          this.record._source.supplier_id +
+          "?token=" +
+          this.$store.getters.creds.token;
+
+        axios
+          .get(urlSupplier)
+          .then((response) => {
+            var updatedSource = response.data.data._source;
+            updatedSource.picker = this.defaultPicker;
+
+            var updatedSupplier = {
+              _index: "supplier_veeqo",
+              _source: updatedSource,
+              _id: this.record._source.supplier_id,
+            };
+
+            this.$store.commit({
+              type: "updateRecord",
+              data: updatedSupplier,
+            });
+
+            this.notifyUser(
+              "success",
+              "Ramasseur par défaut",
+              "Enregistrement réussi !"
+            );
+          })
+          .catch((error) => {
+            console.log(
+              "=============== ERROR #1 : Error while saving default picker"
+            );
+            this.notifyUser(
+              "error",
+              "Error #1",
+              "un problème est survenu pendant l'enregistrement."
+            );
+          });
+      }
+      this.cleanAllData();
+      this.$emit("dialogclose");
+    },
+    cleanAllData() {
+      this.currentPicker = "";
+      this.defaultPicker = "";
+      this.supplierPicker = "";
+      this.usersList = [];
+    },
+    getUsersList: function() {
+      var url =
+        this.$store.getters.apiurl +
+        "generic_search/nyx_user?token=" +
+        this.$store.getters.creds.token;
+
+      var usersQuery = {
+        size: 500,
+        sort: [
+          {
+            updated_at: {
+              order: "desc",
+              unmapped_type: "boolean",
+            },
+          },
+        ],
+        query: {
+          bool: {
+            must: [],
+            filter: [
+              {
+                bool: {
+                  should: [
+                    {
+                      match: {
+                        privileges: "MVP_Ramasse",
+                      },
+                    },
+                  ],
+                  minimum_should_match: 1,
+                },
+              },
+            ],
+          },
+        },
+      };
+
+      axios
+        .post(url, usersQuery)
+        .then((response) => {
+          this.usersList = response.data.records;
+        })
+        .catch((error) => {
+          console.log("=============== ERROR #2 : unable to get users list");
+          this.notifyUser(
+            "error",
+            "Error #2",
+            "Echec lors de la récupération la liste des ramasseurs."
+          );
+        });
+    },
+    isThereAlreadyADefaultPicker() {
+      /*  GET SUPPLIER DATA */
+      var urlSupplier =
+        this.$store.getters.apiurl +
+        "generic/supplier_veeqo/" +
+        this.record._source.supplier_id +
+        "?token=" +
+        this.$store.getters.creds.token;
+
+      axios
+        .get(urlSupplier)
+        .then((response) => {
+          if (
+            response.data.data._source.picker != null &&
+            response.data.data._source.picker != ""
+          ) {
+            this.defaultPicker = response.data.data._source.picker;
+            this.supplierPicker = response.data.data._source.picker;
+          } else {
+            this.defaultPicker = "";
+          }
+        })
+        .catch((error) => {
+          console.log(
+            "=============== ERROR #3 : unable to retrieve the default picker"
+          );
+          this.notifyUser(
+            "error",
+            "Error #3",
+            "Lecture du ramasseur par défaut impossible."
+          );
+        });
+    },
+    getPoPicker() {
+      if (
+        this.record._source.picker != null &&
+        this.record._source.picker != ""
+      )
+        this.currentPicker = this.record._source.picker;
+      else {
+        this.record._source.picker = "";
+      }
+    },
+    init() {
+      this.getUsersList();
+      this.getPoPicker();
+      this.isThereAlreadyADefaultPicker();
+    },
+    notifyUser(m_type, m_title, m_message) {
+      this.$notify({
+        title: m_title,
+        message: m_message,
+        type: m_type,
+      });
+    },
+  },
 };
 </script>
 
-<style >
+<style>
+.clearfix:before,
+.clearfix:after {
+  display: table;
+  content: "";
+}
+.clearfix:after {
+  clear: both;
+}
 
+.box-card {
+  min-width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.box-title {
+  font-size: 30px;
+}
+.picker-card {
+  padding: 10px 1em 10px 1em;
+  margin-top: 5px;
+  font-size: 20px;
+  background-color: #d9ecff !important;
+}
 </style>
