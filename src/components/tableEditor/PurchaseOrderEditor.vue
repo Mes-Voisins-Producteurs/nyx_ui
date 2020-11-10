@@ -182,7 +182,6 @@ export default {
   },
   methods: {
     closeDialog: function() {
-      this.cleanAllData();
       this.$emit("dialogclose");
     },
     closeAndSaveDialog: function() {
@@ -210,13 +209,6 @@ export default {
 
       /*========== SAVING THE DEFAULT PICKER ==========*/
       if (this.supplierPicker != this.defaultPicker) {
-        console.log("#### TRYING TO RECORD THE DEFAULT SUPPLIER - START");
-        console.log(
-          "#### suppPicker: " +
-            this.supplierPicker +
-            " - defauPicker: " +
-            this.defaultPicker
-        );
         /*  GET SUPPLIER DATA */
         var urlSupplier =
           this.$store.getters.apiurl +
@@ -224,17 +216,12 @@ export default {
           this.record._source.supplier_id +
           "?token=" +
           this.$store.getters.creds.token;
-        //var dP = this.defaultPicker;
-        
+
         axios
           .get(urlSupplier)
           .then((response) => {
-            console.log("#### debug response: ", response);
             var updatedSource = response.data.data._source;
-            console.log("#### debug this.defau: ", this.defaultPicker);
             updatedSource.picker = this.defaultPicker;
-            //updatedSource.picker = dP;
-            console.log("#### debug uS.p: ", updatedSource.picker);
 
             var updatedSupplier = {
               _index: "supplier_veeqo",
@@ -242,7 +229,6 @@ export default {
               _id: this.record._source.supplier_id,
             };
 
-            console.log("#### debug payload: ", updatedSupplier);
             this.$store.commit({
               type: "updateRecord",
               data: updatedSupplier,
@@ -265,14 +251,7 @@ export default {
             );
           });
       }
-      this.cleanAllData();
       this.$emit("dialogclose");
-    },
-    cleanAllData() {
-      this.currentPicker = "";
-      this.defaultPicker = "";
-      this.supplierPicker = "";
-      this.usersList = [];
     },
     getUsersList: function() {
       var url =
