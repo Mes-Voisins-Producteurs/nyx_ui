@@ -306,7 +306,6 @@ export default {
     },
     isThereAlreadyADefaultPicker() {
       if (this.record._source.supplier_id == null) {
-        console.log(" PAS D'ID MOTHAFUCKA ! ");
         this.notifyUser(
           "error",
           "Error #4",
