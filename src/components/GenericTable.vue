@@ -211,6 +211,7 @@ import generictabledetails from "@/components/GenericTableDetails";
 import map from "@/components/Map";
 import barchart from "@/components/BarChart";
 import querybar from "@/components/QueryBar";
+import queryfilter from "@/components/QueryFilter";
 import _ from "lodash";
 import { computeTranslatedText } from "../globalfunctions";
 
@@ -226,6 +227,7 @@ req.keys().forEach(filename => {
 Vue.component("Map", map);
 Vue.component("BarChart", barchart);
 Vue.component("QueryBar", querybar);
+Vue.component("QueryFilter", queryfilter);
 Vue.component("GenericTableDetails", generictabledetails);
 
 export default {
