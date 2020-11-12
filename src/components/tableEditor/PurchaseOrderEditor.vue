@@ -1,124 +1,180 @@
 <template>
   <el-dialog
-    width="80%"
+    width="600px"
     :title="title"
     :visible.sync="dialogFormVisible"
     :before-close="closeDialog"
     :close-on-click-modal="false"
     class="purchase-order-editor"
   >
-    <el-container direction="vertical">
-      <el-card class="box-card box-title" shadow="never">
-        <div class="clearfix">
-          <span>
-            {{ this.record._source.supplier | capitalizeFirstLetter }}
-          </span>
-        </div>
-      </el-card>
-
-      <el-card class="box-card picker-bg" shadow="never">
-        <div class="clearfix">
+    <div style="width:100%">
+      <el-row>
+        <el-card shadow="never">
           <div>
-            Actuellement assigné(s) :
-
-            <!-- DEFAULT PICKER ROW -->
-            <el-row class="text item">
-              <el-card
-                class="picker-card"
-                shadow="hover"
-                body-style="padding: 0px 1em 0px 1em;"
-              >
-                <span style="float: left; min-width: 200px;">
-                  Ramasseur par défaut
-                </span>
-                <span>
-                  <el-select
-                    v-model="defaultPicker"
-                    placeholder="Choisir le ramasseur"
-                    style="min-width: 300px;"
-                    :disabled="isDisabled"
-                  >
-                    <el-option
-                      v-for="user in usersList"
-                      :key="user._source.login"
-                      :label="
-                        user._source.firstname + ' ' + user._source.lastname
-                      "
-                      :value="user._source.login"
-                    >
-                    </el-option>
-                  </el-select>
-                </span>
-
-                <el-button-group style="float:right;">
-                  <el-tooltip
-                    class="item"
-                    effect="dark"
-                    content="Désaffecter cet utilisateur"
-                    placement="top-start"
-                  >
-                    <el-button
-                      v-if="defaultPicker"
-                      type="danger"
-                      icon="el-icon-delete"
-                      size="small"
-                      @click="defaultPicker = ''"
-                    ></el-button>
-                  </el-tooltip>
-                </el-button-group>
-              </el-card>
-            </el-row>
-
-            <!-- CURRENT PICKER ROW -->
-            <el-row class="text item">
-              <el-card
-                class="picker-card"
-                shadow="hover"
-                body-style="padding: 0px 1em 0px 1em;"
-              >
-                <span style="float: left; min-width: 200px;">
-                  Assigné à ce bon
-                </span>
-
-                <span align="middle">
-                  <el-select
-                    v-model="currentPicker"
-                    placeholder="Choisir le ramasseur"
-                    style="min-width: 300px;"
-                  >
-                    <el-option
-                      v-for="user in usersList"
-                      :key="user._source.login"
-                      :label="
-                        user._source.firstname + ' ' + user._source.lastname
-                      "
-                      :value="user._source.login"
-                    >
-                    </el-option>
-                  </el-select>
-                </span>
-
-                <el-button-group style="float:right;">
-                  <el-tooltip
-                    class="item"
-                    effect="dark"
-                    content="Désaffecter cet utilisateur"
-                    placement="top-start"
-                  >
-                    <el-button
-                      type="danger"
-                      icon="el-icon-delete"
-                      size="small"
-                      @click="currentPicker = ''"
-                    ></el-button>
-                  </el-tooltip>
-                </el-button-group>
-              </el-card>
-            </el-row>
+            <span style="font-size:30px;">{{ this.record._source.supplier | capitalizeFirstLetter }}</span>
           </div>
-        </div>
-      </el-card>
-    </el-container>
+        </el-card>
+      </el-row>
+
+      <el-row>
+        <el-card shadow="never">
+          <div>
+            <div>
+              <el-row>
+                <span>
+                Actuellement assigné(s) :
+                </span>
+              </el-row>
+              <!-- DEFAULT PICKER ROW -->
+              <!-- <el-row>
+                <el-card  shadow="hover" body-style="padding: 0px 1em 0px 1em;">
+                  <span style="float: left; min-width: 200px;">Ramasseur par défaut</span>
+                  <span>
+                    <el-select
+                      v-model="defaultPicker"
+                      placeholder="Choisir le ramasseur"
+                      style="min-width: 300px;"
+                      :disabled="isDisabled"
+                    >
+                      <el-option
+                        v-for="user in usersList"
+                        :key="user._source.login"
+                        :label="
+                        user._source.firstname + ' ' + user._source.lastname
+                      "
+                        :value="user._source.login"
+                      ></el-option>
+                    </el-select>
+                  </span>
+
+                  <el-button-group style="float:right;">
+                    <el-tooltip
+                      class="item"
+                      effect="dark"
+                      content="Désaffecter cet utilisateur"
+                      placement="top-start"
+                    >
+                      <el-button
+                        v-if="defaultPicker"
+                        type="danger"
+                        icon="el-icon-delete"
+                        size="small"
+                        @click="defaultPicker = ''"
+                      ></el-button>
+                    </el-tooltip>
+                  </el-button-group>
+                </el-card>
+              </el-row> -->
+
+              <!-- CURRENT PICKER ROW -->
+              <el-row >
+                <el-card 
+                shadow="hover" 
+                body-style="padding: 10px 1em 5px 1em;">
+                  <el-row v-if="!isDisabled">
+                    <el-col :span="8" style="text-align:left; margin-top:4px;">
+                      <div><b>Ramasseur par défaut</b></div>
+                    </el-col>
+
+                    <el-col :span="12">
+                      <el-select
+                        size="mini"
+                        v-model="defaultPicker"
+                        placeholder="Choisir le ramasseur"
+                        style="width:80%"
+                        :disabled="isDisabled"
+                      >
+                        <el-option
+                          v-for="user in usersList"
+                          :key="user._source.login"
+                          :label="
+                        user._source.firstname + ' ' + user._source.lastname
+                      "
+                          :value="user._source.login"
+                        ></el-option>
+                      </el-select>
+                    </el-col>
+
+                    <el-col :span="4" style="text-align:right">
+                      <el-button-group>
+                        <el-tooltip
+                          class="item"
+                          effect="dark"
+                          content="Désaffecter cet utilisateur"
+                          placement="top-start"
+                        >
+                          <el-button
+                            type="danger"
+                            icon="el-icon-delete"
+                            size="mini"
+                            v-if="defaultPicker"
+                            @click="defaultPicker = ''"
+                          ></el-button>
+                        </el-tooltip>
+                      </el-button-group>
+                    </el-col>
+                  </el-row>
+                  <el-row v-else>
+                    <el-alert
+                      title="Impossible de modifier le ramasseur par défaut pour ce fournisseur"
+                      type="error"
+                      :closable="false"
+                      effect="dark">
+                    </el-alert>
+                  </el-row>
+                </el-card>
+              </el-row>
+              <el-row >
+                <el-card shadow="hover" body-style="padding: 10px 1em 5px 1em;">
+                  <el-row>
+                    <el-col :span="8" style="text-align:left; margin-top:4px;">
+                      <div><b>Assigné à ce bon</b></div>
+                    </el-col>
+
+                    <el-col :span="12">
+                      <el-select
+                        size="mini"
+                        v-model="currentPicker"
+                        placeholder="Choisir le ramasseur"
+                        style="width:80%"
+                      >
+                        <el-option
+                          v-for="user in usersList"
+                          :key="user._source.login"
+                          :label="
+                        user._source.firstname + ' ' + user._source.lastname
+                      "
+                          :value="user._source.login"
+                        ></el-option>
+                      </el-select>
+                    </el-col>
+
+                    <el-col :span="4" style="text-align:right">
+                      <el-button-group>
+                        <el-tooltip
+                          class="item"
+                          effect="dark"
+                          content="Désaffecter cet utilisateur"
+                          placement="top-start"
+                        >
+                          <el-button
+                            type="danger"
+                            icon="el-icon-delete"
+                            size="mini"
+                            v-if="currentPicker"
+                            @click="currentPicker = ''"
+                          ></el-button>
+                        </el-tooltip>
+                      </el-button-group>
+                    </el-col>
+                  </el-row>
+                </el-card>
+              </el-row>
+            </div>
+          </div>
+        </el-card>
+      </el-row>
+    </div>
 
     <div class="row"></div>
     <span slot="footer" class="dialog-footer">
@@ -146,7 +202,7 @@ export default {
     currentPicker: "",
     defaultPicker: "",
     supplierPicker: "",
-    usersList: [],
+    usersList: []
   }),
   computed: {
     recordin: function() {
@@ -162,24 +218,24 @@ export default {
       if (this.record == null) return true;
       if (this.record._source.supplier_id == null) return true;
       return false;
-    },
+    }
   },
   props: {
     record: {
-      type: Object,
+      type: Object
     },
     config: {
-      type: Object,
+      type: Object
     },
     editMode: {
-      type: String,
-    },
+      type: String
+    }
   },
   watch: {
     recordin: {
       handler: function() {},
-      deep: true,
-    },
+      deep: true
+    }
   },
   created: function() {
     this.dialogFormVisible = true;
@@ -199,12 +255,12 @@ export default {
         var updatedRecord = {
           _index: this.record._index,
           _source: this.record._source,
-          _id: this.record._id,
+          _id: this.record._id
         };
 
         this.$store.commit({
           type: "updateRecord",
-          data: updatedRecord,
+          data: updatedRecord
         });
 
         this.notifyUser(
@@ -212,6 +268,8 @@ export default {
           "Bon de commande",
           "Enregistrement réussi !"
         );
+
+        this.$emit("dialogcloseupdated");
       }
 
       /*========== SAVING THE DEFAULT PICKER ==========*/
@@ -226,19 +284,19 @@ export default {
 
         axios
           .get(urlSupplier)
-          .then((response) => {
+          .then(response => {
             var updatedSource = response.data.data._source;
             updatedSource.picker = this.defaultPicker;
 
             var updatedSupplier = {
               _index: "supplier_veeqo",
               _source: updatedSource,
-              _id: this.record._source.supplier_id,
+              _id: this.record._source.supplier_id
             };
 
             this.$store.commit({
               type: "updateRecord",
-              data: updatedSupplier,
+              data: updatedSupplier
             });
 
             this.notifyUser(
@@ -247,7 +305,7 @@ export default {
               "Enregistrement réussi !"
             );
           })
-          .catch((error) => {
+          .catch(error => {
             console.log(
               "=============== ERROR #1 : Error while saving default picker"
             );
@@ -272,9 +330,9 @@ export default {
           {
             updated_at: {
               order: "desc",
-              unmapped_type: "boolean",
-            },
-          },
+              unmapped_type: "boolean"
+            }
+          }
         ],
         query: {
           bool: {
@@ -285,24 +343,24 @@ export default {
                   should: [
                     {
                       match: {
-                        privileges: "MVP_Ramasse",
-                      },
-                    },
+                        privileges: "MVP_Ramasse"
+                      }
+                    }
                   ],
-                  minimum_should_match: 1,
-                },
-              },
-            ],
-          },
-        },
+                  minimum_should_match: 1
+                }
+              }
+            ]
+          }
+        }
       };
 
       axios
         .post(url, usersQuery)
-        .then((response) => {
+        .then(response => {
           this.usersList = response.data.records;
         })
-        .catch((error) => {
+        .catch(error => {
           console.log("=============== ERROR #2 : unable to get users list");
           this.notifyUser(
             "error",
@@ -330,7 +388,7 @@ export default {
 
       axios
         .get(urlSupplier)
-        .then((response) => {
+        .then(response => {
           if (
             response.data.data._source.picker != null &&
             response.data.data._source.picker != ""
@@ -342,7 +400,7 @@ export default {
             this.supplierPicker = "";
           }
         })
-        .catch((error) => {
+        .catch(error => {
           console.log(
             "=============== ERROR #3 : unable to retrieve the default picker"
           );
@@ -372,24 +430,15 @@ export default {
       this.$notify({
         title: m_title,
         message: m_message,
-        type: m_type,
+        type: m_type
       });
-    },
-  },
+    }
+  }
 };
 </script>
 
 <style>
-.clearfix:before,
-.clearfix:after {
-  display: table;
-  content: "";
-}
-.clearfix:after {
-  clear: both;
-}
-
-.box-card {
+/* .box-card {
   min-width: 100%;
   text-align: center;
   margin-bottom: 20px;
@@ -403,5 +452,5 @@ export default {
   margin-top: 5px;
   font-size: 20px;
   background-color: #d9ecff !important;
-}
+} */
 </style>
