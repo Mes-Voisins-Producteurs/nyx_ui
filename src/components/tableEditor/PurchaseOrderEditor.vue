@@ -36,6 +36,7 @@
                     v-model="defaultPicker"
                     placeholder="Choisir le ramasseur"
                     style="min-width: 300px;"
+                    :disabled="isDisabled"
                   >
                     <el-option
                       v-for="user in usersList"
@@ -57,6 +58,7 @@
                     placement="top-start"
                   >
                     <el-button
+                      v-if="defaultPicker"
                       type="danger"
                       icon="el-icon-delete"
                       size="small"
@@ -155,6 +157,11 @@ export default {
     },
     recchanged: function() {
       return JSON.stringify(this.recordin) != JSON.stringify(this.newRec);
+    },
+    isDisabled: function() {
+      if (this.record == null) return true;
+      if (this.record._source.supplier_id == null) return true;
+      return false;
     },
   },
   props: {
